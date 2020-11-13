@@ -14,21 +14,127 @@ class Player:
         self.states_value = {}  # state -> value
         self.player_symbol = player_symbol
         self.update_method = update_method
+        self.is_eval = False
+        self.model = None
 
     def getHash(self, board):
         boardHash = str(board.reshape(BOARD_COLS*BOARD_ROWS))
         return boardHash
 
-    # get unique hash of current board state
-    # def getHash(self, board):
-    #     board_str = ''
-    #     for pos in board.reshape(BOARD_COLS * BOARD_ROWS):
-    #         if pos == -1:
-    #             board_str += '2'
-    #         else:
-    #             board_str += str(int(pos))
-    #     self.boardHash = board_str
-    #     return self.boardHash
+    def addState(self, state):
+        self.states.append(state)
+
+    def reset(self):
+        self.states = []
+
+    def savePolicy(self):
+        fw = open('policy_' + str(self.name), 'wb')
+        pickle.dump(self.states_value, fw)
+        fw.close()
+
+    def loadPolicy(self, file):
+        fr = open(file, 'rb')
+        self.states_value = pickle.load(fr)
+        fr.close()
+
+    def forget(self):
+        self.model = None
+        self.states_value = {}
+
+
+class ClassicPlayer(Player):
+    def __init__(self, name, exp_rate=0.3, player_symbol=1, update_method='sarsa'):
+        super().__init__(name, exp_rate=exp_rate,
+                         player_symbol=player_symbol, update_method=update_method)
+
+    def getHash(self, board):
+        board_str = ''
+        for pos in board.reshape(BOARD_COLS * BOARD_ROWS):
+            if pos == -1:
+                board_str += '2'
+            else:
+                board_str += str(int(pos))
+        return board_str
+
+    # Find the distance between states
+    def is_next_state(self, old_state, new_state):
+        diff = []
+        for pos1, pos2 in zip(old_state, new_state):
+            if pos1 == pos2:
+                continue
+            if pos1 == '0' and pos2 != '0':
+                diff.append(pos2)
+            else:
+                return False
+        return sorted(diff) == ['1','2']
+
+    def chooseAction(self, positions, current_board, symbol):
+        if np.random.uniform(0, 1) <= self.exp_rate:
+            # take random action
+            idx = np.random.choice(len(positions))
+            action = positions[idx]
+        else:
+            value_max = -999
+            for p in positions:
+                next_board = current_board.copy()
+                next_board[p] = symbol
+                next_boardHash = self.getHash(next_board)
+                value = 0 if self.states_value.get(next_boardHash) is None else self.states_value.get(next_boardHash)
+                if value >= value_max:
+                    value_max = value
+                    action = p
+        return action
+
+    # at the end of game, backpropagate and update states value
+    def feedReward(self, reward):
+        if self.is_eval:
+            return
+        if self.update_method == 'sarsa':
+            for st in reversed(self.states):
+                if self.states_value.get(st) is None:
+                    self.states_value[st] = 0
+                self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
+                reward = self.states_value[st]
+
+        if self.update_method == 'expected_sarsa':
+            for st in reversed(self.states):
+                if self.states_value.get(st) is None:
+                    self.states_value[st] = 0
+                possible_states = []
+                if reward is None:
+                    for next_st in self.states_value:
+                        if self.is_next_state(st, next_st):
+                            possible_states.append((next_st, self.states_value[next_st]))
+                    reward = max([_[1] for _ in possible_states])
+                #                     print(possible_states, reward)
+                self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
+                #                 print(self.states_value)
+                reward = None
+
+
+class RandomClassicPlayer(Player):
+    def __init__(self, name):
+        self.name = name
+        self.update_method = "Random Player"
+
+    def chooseAction(self, positions, current_board, symbol):
+        idx = np.random.choice(len(positions))
+        action = positions[idx]
+        return action
+
+    # append a hash state
+    def addState(self, state):
+        pass
+
+    # at the end of game, backpropagate and update states value
+    def feedReward(self, reward):
+        pass
+
+    def reset(self):
+        pass
+
+
+class SPPlayer(Player):
 
     def chooseAction(self, positions, current_board, symbol):
         # take random action
@@ -56,26 +162,11 @@ class Player:
         # print("{} takes action {}".format(self.name, action))
         return action1, action2
 
-    # append a hash state
-    def addState(self, state):
-        self.states.append(state)
-
-    # Find the distance between states
-    def is_next_state(self, old_state, new_state):
-        #         print('Compare', old_state, new_state)
-        diff = []
-        for pos1, pos2 in zip(old_state, new_state):
-            if pos1 == pos2:
-                continue
-            if pos1 == '0' and pos2 != '0':
-                diff.append(pos2)
-            else:
-                return False
-        #         print('diff', diff)
-        return sorted(diff) == ['1', '2']
-
     # at the end of game, backpropagate and update states value
     def feedReward(self, reward):
+        # Do not update value if it's in eval mode
+        if self.is_eval:
+            return
         if self.update_method == 'sarsa':
             for st in reversed(self.states):
                 if self.states_value.get(st) is None:
@@ -83,41 +174,29 @@ class Player:
                 self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
                 reward = self.states_value[st]
 
-        if self.update_method == 'expected_sarsa':
-            #             print('ss', self.states, 'reward', reward)
-            for st in reversed(self.states):
-                if self.states_value.get(st) is None:
-                    self.states_value[st] = 0
-                possible_states = []
-                if reward is None:
-                    for next_st in self.states_value:
-                        if self.is_next_state(st, next_st):
-                            possible_states.append((next_st, self.states_value[next_st]))
-                    reward = max([_[1] for _ in possible_states])
-                #                     print(possible_states, reward)
-                self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
-                #                 print(self.states_value)
-                reward = None
+        # if self.update_method == 'expected_sarsa':
+        #     #             print('ss', self.states, 'reward', reward)
+        #     for st in reversed(self.states):
+        #         if self.states_value.get(st) is None:
+        #             self.states_value[st] = 0
+        #         possible_states = []
+        #         if reward is None:
+        #             for next_st in self.states_value:
+        #                 if self.is_next_state(st, next_st):
+        #                     possible_states.append((next_st, self.states_value[next_st]))
+        #             reward = max([_[1] for _ in possible_states])
+        #         #                     print(possible_states, reward)
+        #         self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
+        #         #                 print(self.states_value)
+        #         reward = None
 
-    def reset(self):
-        self.states = []
 
-    def savePolicy(self):
-        fw = open('policy_' + str(self.name), 'wb')
-        pickle.dump(self.states_value, fw)
-        fw.close()
-
-    def loadPolicy(self, file):
-        fr = open(file, 'rb')
-        self.states_value = pickle.load(fr)
-        fr.close()
-
-class RandomPlayer:
+class RandomSPPlayer(Player):
     def __init__(self, name):
         self.name = name
+        self.update_method = "Random Player"
 
     def chooseAction(self, positions, current_board, symbol):
-        #    print(positions)
         return positions[np.random.choice(len(positions))], positions[np.random.choice(len(positions))]
 
     # append a hash state
@@ -130,6 +209,7 @@ class RandomPlayer:
 
     def reset(self):
         pass
+
 
 class HumanPlayer:
     def __init__(self, name):
