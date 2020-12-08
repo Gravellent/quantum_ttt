@@ -336,26 +336,28 @@ class DeepQPlayer(Player):
             self.optimizer.step()
             reward = self.decay_gamma * reward
 
-    def collapse(self, play, pos, board, availablePositions, trace):
+    def collapse(self, play, pos, board, trace):
         board[pos] = play[1]
         for neighbor in [p for p in trace[pos] if p != play]:
-            board = self.collapseNextEntangled(neighbor, play, pos, board, availablePositions, trace)
-
+            board = self.collapseNextEntangled(neighbor, play, pos, board, trace)
         return board
 
-    def collapseNextEntangled(self, current, goal, pos, board, availablePositions, trace):
+    def collapseNextEntangled(self, current, goal, pos, board, trace):
         if current == goal:
             return board
-        sPos = self.findSuperposition(current, pos, board, trace, availablePositions)
+        sPos = self.findSuperposition(current, pos, board, trace)
         board[sPos] = current[1]
+        
         if len(trace[pos]) == 1:
             return board
         for neighbor in [p for p in trace[sPos] if p != current]:
             if neighbor == goal:
                 return board
-            return self.collapseNextEntangled(neighbor, goal, sPos, board, availablePositions, trace)
+            return self.collapseNextEntangled(neighbor, goal, sPos, board, trace)
+        return board
 
-    def findSuperposition(self, play, pos, board, trace, availablePositions):
+    def findSuperposition(self, play, pos, board, trace):
+        availablePositions = self.availablePositions(board)
         for p in [i for i in availablePositions if i != pos]:
             if play in board[p]:
                 return p
@@ -363,15 +365,13 @@ class DeepQPlayer(Player):
 
     def availablePositions(self, board):
         positions = []
-        for i in range(BOARD_ROWS):
-            for j in range(BOARD_COLS):
-                if board[i, j] == 0:
-                    positions.append((i, j))  # need to be tuple
-        #         print('avail', positions)
+        for i in range(BOARD_ROWS*BOARD_COLS):
+            if isinstance(board[i], list):
+                positions.append(i)
         return positions
 
     # Player does not know how to choose collapse yet
-    def chooseCollapse(self, play, pos1, pos2, avail_pos, current_board, current_trace):
+    def chooseCollapse(self, play, pos1, pos2, current_board, current_trace):
 
         # Random if exploring
         choice = np.random.randint(2)
@@ -384,16 +384,23 @@ class DeepQPlayer(Player):
             value_max = -999
             for pos in (pos1, pos2):
                 next_board = copy.deepcopy(current_board)
-                # print(next_board)
                 next_trace = copy.deepcopy(current_trace)
-                next_board[pos] = play[1]
-                for neighbor in [p for p in next_trace[pos] if p != play]:
-                    next_board = self.collapse(play, pos, next_board, avail_pos, next_trace)
-                    value = self.get_value(next_board)
-                    print('value', next_board)
-                    if value >= value_max:
-                        value_max = value
-                        action = pos
+                print('board before collapse:',next_board) 
+                next_board = self.collapse(play, pos, next_board, next_trace)
+                print('next board:', next_board)
+                value = self.get_value(next_board)
+                if value >= value_max:
+                    value_max = value
+                    action = pos
+#                 next_board[pos] = play[1]
+#                 for neighbor in [p for p in next_trace[pos] if p != play]:
+#                     print("current board", next_board)
+#                     next_board = self.collapse(play, pos, next_board, avail_pos, next_trace)
+#                     print("next board:", next_board)
+#                     value = self.get_value(next_board)
+#                     if value >= value_max:
+#                         value_max = value
+#                         action = pos
         return action
 
 
