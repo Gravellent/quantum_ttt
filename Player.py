@@ -337,8 +337,6 @@ class DeepQPlayer(Player):
             reward = self.decay_gamma * reward
 
     def collapse(self, play, pos, board, trace):
-        print('starting play', play)
-        print('starting pos', pos)
         board[pos] = play[1]
         for neighbor in [p for p in trace[pos] if p != play]:
             board = self.collapseNextEntangled(neighbor, play, pos, board, trace)
@@ -353,7 +351,6 @@ class DeepQPlayer(Player):
         if len(trace[pos]) == 1:
             return board
         for neighbor in [p for p in trace[sPos] if p != current]:
-            print('neighbor', neighbor)
             if neighbor == goal:
                 return board
             board = self.collapseNextEntangled(neighbor, goal, sPos, board, trace)
@@ -388,9 +385,7 @@ class DeepQPlayer(Player):
             for pos in (pos1, pos2):
                 next_board = copy.deepcopy(current_board)
                 next_trace = copy.deepcopy(current_trace)
-                print('board before collapse:',next_board) 
                 next_board = self.collapse(play, pos, next_board, next_trace)
-                print('next board:', next_board)
                 value = self.get_value(next_board)
                 if value >= value_max:
                     value_max = value
