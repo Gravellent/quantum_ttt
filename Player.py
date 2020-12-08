@@ -337,6 +337,8 @@ class DeepQPlayer(Player):
             reward = self.decay_gamma * reward
 
     def collapse(self, play, pos, board, trace):
+        print('starting play', play)
+        print('starting pos', pos)
         board[pos] = play[1]
         for neighbor in [p for p in trace[pos] if p != play]:
             board = self.collapseNextEntangled(neighbor, play, pos, board, trace)
@@ -351,9 +353,10 @@ class DeepQPlayer(Player):
         if len(trace[pos]) == 1:
             return board
         for neighbor in [p for p in trace[sPos] if p != current]:
+            print('neighbor', neighbor)
             if neighbor == goal:
                 return board
-            return self.collapseNextEntangled(neighbor, goal, sPos, board, trace)
+            board = self.collapseNextEntangled(neighbor, goal, sPos, board, trace)
         return board
 
     def findSuperposition(self, play, pos, board, trace):
