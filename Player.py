@@ -312,8 +312,6 @@ class DeepQPlayer(Player):
                         next_trace = copy.deepcopy(current_trace)
                         next_board[p1].append((step, symbol))
                         next_board[p2].append((step, symbol))
-                        # next_trace[p1].append((step, symbol))
-                        # next_trace[p2].append((step, symbol))
                         value = self.get_value(next_board)
                         if value >= value_max:
                             value_max = value
@@ -338,13 +336,65 @@ class DeepQPlayer(Player):
             self.optimizer.step()
             reward = self.decay_gamma * reward
 
+    def collapse(self, play, pos, board, availablePositions, trace):
+        board[pos] = play[1]
+        for neighbor in [p for p in trace[pos] if p != play]:
+            board = self.collapseNextEntangled(neighbor, play, pos, board, availablePositions, trace)
+
+        return board
+
+    def collapseNextEntangled(self, current, goal, pos, board, availablePositions, trace):
+        if current == goal:
+            return board
+        sPos = self.findSuperposition(current, pos, board, trace, availablePositions)
+        board[sPos] = current[1]
+        if len(trace[pos]) == 1:
+            return board
+        for neighbor in [p for p in trace[sPos] if p != current]:
+            if neighbor == goal:
+                return board
+            return self.collapseNextEntangled(neighbor, goal, sPos, board, availablePositions, trace)
+
+    def findSuperposition(self, play, pos, board, trace, availablePositions):
+        for p in [i for i in availablePositions if i != pos]:
+            if play in board[p]:
+                return p
+        return None
+
+    def availablePositions(self, board):
+        positions = []
+        for i in range(BOARD_ROWS):
+            for j in range(BOARD_COLS):
+                if board[i, j] == 0:
+                    positions.append((i, j))  # need to be tuple
+        #         print('avail', positions)
+        return positions
+
     # Player does not know how to choose collapse yet
-    def chooseCollapse(self, play, pos1, pos2):
+    def chooseCollapse(self, play, pos1, pos2, avail_pos, current_board, current_trace):
+
+        # Random if exploring
         choice = np.random.randint(2)
         if choice == 0:
-            return pos1
+            action = pos1
         if choice == 1:
-            return pos2
+            action = pos2
+
+        if np.random.uniform(0, 1) > self.exp_rate:
+            value_max = -999
+            for pos in (pos1, pos2):
+                next_board = copy.deepcopy(current_board)
+                # print(next_board)
+                next_trace = copy.deepcopy(current_trace)
+                next_board[pos] = play[1]
+                for neighbor in [p for p in next_trace[pos] if p != play]:
+                    next_board = self.collapse(play, pos, next_board, avail_pos, next_trace)
+                    value = self.get_value(next_board)
+                    print('value', next_board)
+                    if value >= value_max:
+                        value_max = value
+                        action = pos
+        return action
 
 
 class QPlayer(Player):
@@ -391,7 +441,7 @@ class QPlayer(Player):
         return action1, action2
 
     # Player does not know how to choose collapse yet
-    def chooseCollapse(self, play, pos1, pos2):
+    def chooseCollapse(self, play, pos1, pos2, current_board=None, current_trace=None):
         choice = np.random.randint(2)
         if choice == 0:
             return pos1
@@ -426,7 +476,7 @@ class RandomQPlayer(Player):
         return (positions[pos1], positions[pos2])
 
 
-    def chooseCollapse(self, play, pos1, pos2):
+    def chooseCollapse(self, play, pos1, pos2, current_board=None, current_trace=None):
         choice = np.random.randint(2)
         if choice == 0:
             return pos1

@@ -529,7 +529,7 @@ class QState(State):
                 # check cyclicEntangled
                 # if True, choose collapse and update board state
                 if cyclicEntangled:
-                    collapse_pos = self.p1.chooseCollapse(play, pos1, pos2)
+                    collapse_pos = self.p1.chooseCollapse(play, pos1, pos2,  avail_pos=positions, current_board=self.board, current_trace=self.trace)
                     # print('collapsing...')
                     self.collapse(play, collapse_pos)
                     # print('end collapsing')
@@ -569,7 +569,7 @@ class QState(State):
                 # check cyclicEntangled
                 # if True, choose collapse and update board state
                 if cyclicEntangled:
-                    collapse_pos = self.p2.chooseCollapse(play, pos1, pos2)
+                    collapse_pos = self.p2.chooseCollapse(play, pos1, pos2, avail_pos=positions, current_board=self.board, current_trace=self.trace)
                     # print('collapsing...')
                     self.collapse(play, collapse_pos)
                     # print('end collapsing...')
