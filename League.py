@@ -197,20 +197,27 @@ if __name__ == "__main__":
     For Running a small League
     '''
     player_list = [DeepQPlayer("Challenger"), DeepQPlayer("Contender"), DeepQPlayer("Underdog")]
-    n_players = len(player_list)
+    # number of learning and eval games
     learning_games_per_iteration = 10
     eval_games_per_iteration = 5
+    # how many rounds are playerd
     n_rounds = 3
+    # warm up
     warmup_games = 10
-    verbose = True
     warmup = False
-
+    # randomize order of training
+    random_train = False
+    games_per_step = 2
+    # print stats list before and after plot
+    verbose = True
 
     league = League(player_list, learning_games_per_round=learning_games_per_iteration, games_per_round=eval_games_per_iteration, warm_up=warmup_games)
     
     # NOTE: can use this for warm up
     if warmup:
         league.warmup()
+
+    n_players = len(player_list)
 
     # {name: [[round_1_win, ...]
     #         [round_1_lose, ...] 
@@ -219,7 +226,7 @@ if __name__ == "__main__":
 
     # play rounds of games
     for i in range(n_rounds):
-        round_results = league.play_round()
+        round_results = league.play_round(random_train=random_train, games_per_step=games_per_step)
         print("Round {}".format(i))
         # print(round_results)
         for match_up in round_results['stats'].keys():
