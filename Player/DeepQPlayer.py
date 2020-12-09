@@ -7,12 +7,13 @@ class DeepQPlayer(BasePlayer):
 
     def __init__(self, name, model_cls=LinearModel):
         super().__init__(name)
+        self.model_cls = model_cls
         self.model = model_cls().to(DEVICE)
         self.criterion = nn.MSELoss().to(DEVICE)
         self.optimizer = optim.SGD(self.model.parameters(), lr=0.01)
 
     def forget(self):
-        self.model = LinearModel()
+        self.model = self.model_cls().to(DEVICE)
 
     def getHash(self, board):
         return str(board)
