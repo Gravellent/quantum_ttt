@@ -191,45 +191,11 @@ class League:
         return new_player
 
 
-'''
-Test the League class
-'''
+
 if __name__ == "__main__":
-    # player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender")]
-    # test_league = League(player_list, learning_games_per_round=10, games_per_round=5)
-
-    # print("Test play_match_up()")
-    # state = test_league.states[0]
-    # st = test_league.play_match_up(state)
-    # print("p1 wins:",st.p1_wins)
-    # print("p2 wins:",st.p2_wins)
-    # print("ties:", st.tie)
-
-    # print("\nTest for_player()")
-    # new_player = test_league.fork_player(player_list[1])
-    # print(new_player.name)
-    # print("States values the same (should be True):", new_player.states_value==player_list[1].states_value)
-    # print("Identical model weights (should be True):",(next(player_list[1].model.parameters())==next(new_player.model.parameters())).all().item())
-    # print("Referencing same object (should be False):", player_list[1].model is new_player.model)
-
-    # player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender"), DeepQPlayer("Champion"), DeepQPlayer("Underdog")]
-    # test_league = League(player_list, learning_games_per_round=10, games_per_round=5, warm_up=10)
-
-    # print("\nLeague States")
-    # print(test_league.states)
-
-    # print("\nWarm up players", end="")
-    # test_league.warmup()
-    # print(" - Complete")
-
-    # print("\nCreate and Play Rounds")
-    # print("Round 1 results:")
-    # round_result = test_league.play_round(random_train=True)
-    # print(round_result)
-    # print("\nResults after 2 rounds:")
-    # round_result = test_league.play_round()
-    # print(test_league.round_stats)
-
+    '''
+    For Running a small League
+    '''
     player_list = [DeepQPlayer("Challenger"), DeepQPlayer("Contender"), DeepQPlayer("Underdog")]
     n_players = len(player_list)
     learning_games_per_iteration = 10
@@ -323,7 +289,42 @@ if __name__ == "__main__":
     if verbose:
         print("\n", plot_stats)
 
+    '''
+    Test the League class
+    '''
+    # player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender")]
+    # test_league = League(player_list, learning_games_per_round=10, games_per_round=5)
 
-    # get aggregate data of player
-    # for r in league.round_stats.keys():
-    #     print(league.round_stats[r]['stats'])
+    # print("Test play_match_up()")
+    # state = test_league.states[0]
+    # st = test_league.play_match_up(state)
+    # print("p1 wins:",st.p1_wins)
+    # print("p2 wins:",st.p2_wins)
+    # print("ties:", st.tie)
+
+    # print("\nTest for_player()")
+    # new_player = test_league.fork_player(player_list[1])
+    # print(new_player.name)
+    # print("States values the same (should be True):", new_player.states_value==player_list[1].states_value)
+    # print("Identical model weights (should be True):",(next(player_list[1].model.parameters())==next(new_player.model.parameters())).all().item())
+    # print("Referencing same object (should be False):", player_list[1].model is new_player.model)
+
+    # player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender"), DeepQPlayer("Champion"), DeepQPlayer("Underdog")]
+    # test_league = League(player_list, learning_games_per_round=10, games_per_round=5, warm_up=10)
+
+    # print("\nLeague States")
+    # print(test_league.states)
+
+    # print("\nWarm up players", end="")
+    # test_league.warmup()
+    # print(" - Complete")
+
+    # print("\nCreate and Play Rounds")
+    # print("Round 1 results:")
+    # round_result = test_league.play_round(random_train=True)
+    # print(round_result)
+    # print("\nResults after 2 rounds:")
+    # round_result = test_league.play_round()
+    # print(test_league.round_stats)
+
+    
