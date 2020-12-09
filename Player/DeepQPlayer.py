@@ -68,12 +68,14 @@ class DeepQPlayer(BasePlayer):
                         next_board[p1].append((step, symbol))
                         next_board[p2].append((step, symbol))
                         value = self.get_value(next_board)
+                        # print(next_board, value, value_max, p1, p2)
                         if value >= value_max:
                             value_max = value
                             action1 = p1
                             action2 = p2
 
         # print("{} takes action {}".format(self.name, action1, action2))
+        # print(action1, action2)
         return action1, action2
 
     # at the end of game, backpropagate and update states value
