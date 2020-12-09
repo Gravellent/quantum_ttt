@@ -1,6 +1,8 @@
 import numpy as np
 import torch
 import re
+import copy
+import matplotlib.pyplot as plt
 
 from Player import *
 from State import *
@@ -193,37 +195,135 @@ class League:
 Test the League class
 '''
 if __name__ == "__main__":
-    player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender")]
-    test_league = League(player_list, learning_games_per_round=10, games_per_round=5)
+    # player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender")]
+    # test_league = League(player_list, learning_games_per_round=10, games_per_round=5)
 
-    print("Test play_match_up()")
-    state = test_league.states[0]
-    st = test_league.play_match_up(state)
-    print("p1 wins:",st.p1_wins)
-    print("p2 wins:",st.p2_wins)
-    print("ties:", st.tie)
+    # print("Test play_match_up()")
+    # state = test_league.states[0]
+    # st = test_league.play_match_up(state)
+    # print("p1 wins:",st.p1_wins)
+    # print("p2 wins:",st.p2_wins)
+    # print("ties:", st.tie)
 
-    print("\nTest for_player()")
-    new_player = test_league.fork_player(player_list[1])
-    print(new_player.name)
-    print("States values the same (should be True):", new_player.states_value==player_list[1].states_value)
-    print("Identical model weights (should be True):",(next(player_list[1].model.parameters())==next(new_player.model.parameters())).all().item())
-    print("Referencing same object (should be False):", player_list[1].model is new_player.model)
+    # print("\nTest for_player()")
+    # new_player = test_league.fork_player(player_list[1])
+    # print(new_player.name)
+    # print("States values the same (should be True):", new_player.states_value==player_list[1].states_value)
+    # print("Identical model weights (should be True):",(next(player_list[1].model.parameters())==next(new_player.model.parameters())).all().item())
+    # print("Referencing same object (should be False):", player_list[1].model is new_player.model)
 
-    player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender"), DeepQPlayer("Champion"), DeepQPlayer("Underdog")]
-    test_league = League(player_list, learning_games_per_round=10, games_per_round=5, warm_up=10)
+    # player_list = [RandomQPlayer("Challenger_v1_"), DeepQPlayer("Contender"), DeepQPlayer("Champion"), DeepQPlayer("Underdog")]
+    # test_league = League(player_list, learning_games_per_round=10, games_per_round=5, warm_up=10)
 
-    print("\nLeague States")
-    print(test_league.states)
+    # print("\nLeague States")
+    # print(test_league.states)
 
-    print("\nWarm up players", end="")
-    test_league.warmup()
-    print(" - Complete")
+    # print("\nWarm up players", end="")
+    # test_league.warmup()
+    # print(" - Complete")
 
-    print("\nCreate and Play Rounds")
-    print("Round 1 results:")
-    round_result = test_league.play_round(random_train=True)
-    print(round_result)
-    print("\nResults after 2 rounds:")
-    round_result = test_league.play_round()
-    print(test_league.round_stats)
+    # print("\nCreate and Play Rounds")
+    # print("Round 1 results:")
+    # round_result = test_league.play_round(random_train=True)
+    # print(round_result)
+    # print("\nResults after 2 rounds:")
+    # round_result = test_league.play_round()
+    # print(test_league.round_stats)
+
+    player_list = [DeepQPlayer("Challenger"), DeepQPlayer("Contender"), DeepQPlayer("Underdog")]
+    n_players = len(player_list)
+    learning_games_per_iteration = 10
+    eval_games_per_iteration = 5
+    n_rounds = 3
+    warmup_games = 10
+    verbose = True
+    warmup = False
+
+
+    league = League(player_list, learning_games_per_round=learning_games_per_iteration, games_per_round=eval_games_per_iteration, warm_up=warmup_games)
+    
+    # NOTE: can use this for warm up
+    if warmup:
+        league.warmup()
+
+    # {name: [[round_1_win, ...]
+    #         [round_1_lose, ...] 
+    #         [round_1_tie, ...]], ...}
+    plot_stats = {}
+
+    # play rounds of games
+    for i in range(n_rounds):
+        round_results = league.play_round()
+        print("Round {}".format(i))
+        # print(round_results)
+        for match_up in round_results['stats'].keys():
+            names = round_results['matchups'][match_up].split(' vs ')
+            p1_name = names[0]
+            p2_name = names[1]
+
+            # Player 1 stats
+            wins = round_results['stats'][match_up][1]
+            lose = round_results['stats'][match_up][2]
+            tie = round_results['stats'][match_up][0]
+            # if not there
+            if p1_name not in plot_stats:
+                plot_stats[p1_name] = [[wins],[lose],[tie]]
+            # if there
+            else:
+                # if round stats already initialized
+                if len(plot_stats[p1_name][0]) == i+1:
+                    plot_stats[p1_name][0][i] += wins
+                    plot_stats[p1_name][1][i] += lose
+                    plot_stats[p1_name][2][i] += tie
+                # if round not initialized start column
+                else:
+                    plot_stats[p1_name][0].append(wins)
+                    plot_stats[p1_name][1].append(lose)
+                    plot_stats[p1_name][2].append(tie)                    
+
+            # Player 2 stats
+            wins = round_results['stats'][match_up][2]
+            lose = round_results['stats'][match_up][1]
+            tie = round_results['stats'][match_up][0]
+            # if not there
+            if p2_name not in plot_stats:
+                plot_stats[p2_name] = [[wins],[lose],[tie]]
+            # if there
+            else:
+                # if round stats already initialized
+                if len(plot_stats[p2_name][0]) == i+1:
+                    plot_stats[p2_name][0][i] += wins
+                    plot_stats[p2_name][1][i] += lose
+                    plot_stats[p2_name][2][i] += tie
+                # if round not initialized start column
+                else:
+                    plot_stats[p2_name][0].append(wins)
+                    plot_stats[p2_name][1].append(lose)
+                    plot_stats[p2_name][2].append(tie)
+    
+    if verbose:
+        print("\n", plot_stats)
+    
+    for player in plot_stats.keys():
+        games = np.arange(0, (n_rounds)*eval_games_per_iteration, eval_games_per_iteration)
+        
+        for i in range(n_rounds):
+            plot_stats[player][0][i] /= eval_games_per_iteration*((n_players-1)*2)
+            plot_stats[player][1][i] /= eval_games_per_iteration*((n_players-1)*2)
+            plot_stats[player][2][i] /= eval_games_per_iteration*((n_players-1)*2)
+
+        p1_plot = plt.plot(games, plot_stats[player][0], label="Win rate")
+        p2_plot = plt.plot(games, plot_stats[player][1], label="Lose rate")
+        tie_plot = plt.plot(games, plot_stats[player][2], label="Tie rate")
+        plt.ylim(-0.1,1.1)
+        plt.title("{} Stats".format(player))
+        plt.legend()
+        plt.show()
+    
+    if verbose:
+        print("\n", plot_stats)
+
+
+    # get aggregate data of player
+    # for r in league.round_stats.keys():
+    #     print(league.round_stats[r]['stats'])
