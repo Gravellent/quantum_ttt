@@ -86,6 +86,7 @@ class DeepQPlayer(BasePlayer):
             return
         # if self.update_method == 'sarsa':
         for st in reversed(self.states):
+            self.optimizer.zero_grad()
             state_tensor = self.get_state_tensor(st).to(DEVICE)
             y_pred = self.model(state_tensor)
             y_true = torch.FloatTensor([reward]).to(DEVICE)
