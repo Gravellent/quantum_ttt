@@ -7,12 +7,13 @@ class DeepQPlayer(BasePlayer):
 
     def __init__(self, name, model_cls=LinearModel):
         super().__init__(name)
+        self.model_cls = model_cls
         self.model = model_cls().to(DEVICE)
         self.criterion = nn.MSELoss().to(DEVICE)
         self.optimizer = optim.SGD(self.model.parameters(), lr=0.01)
 
     def forget(self):
-        self.model = LinearModel()
+        self.model = self.model_cls().to(DEVICE)
 
     def getHash(self, board):
         return str(board)
@@ -40,10 +41,10 @@ class DeepQPlayer(BasePlayer):
             assert (symbol1 == symbol2)
             state_tensor[pos1, pos2] = symbol1
             state_tensor[pos2, pos1] = symbol1
-        return state_tensor
+        return state_tensor * self.player_symbol
 
     def get_value(self, board):
-        state_tensor = self.get_state_tensor(board)
+        state_tensor = self.get_state_tensor(board).to(DEVICE)
         value = self.model(state_tensor)
         return value.item()
 
@@ -85,6 +86,7 @@ class DeepQPlayer(BasePlayer):
             return
         # if self.update_method == 'sarsa':
         for st in reversed(self.states):
+            self.optimizer.zero_grad()
             state_tensor = self.get_state_tensor(st).to(DEVICE)
             y_pred = self.model(state_tensor)
             y_true = torch.FloatTensor([reward]).to(DEVICE)

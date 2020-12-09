@@ -7,7 +7,7 @@ BOARD_SIDE = 3
 BOARD_SIZE = BOARD_SIDE * BOARD_SIDE
 
 class BaseState:
-    def __init__(self, p1, p2, lose_reward=0, win_reward=1, p1_tie_reward=0.1, p2_tie_reward=0.5):
+    def __init__(self, p1, p2, lose_reward=-1, win_reward=1, p1_tie_reward=0.1, p2_tie_reward=0.5):
         self.board = np.zeros((BOARD_ROWS, BOARD_COLS))
         self.p1 = p1
         self.p2 = p2
