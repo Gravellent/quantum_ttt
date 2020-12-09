@@ -40,7 +40,7 @@ class DeepQPlayer(BasePlayer):
             assert (symbol1 == symbol2)
             state_tensor[pos1, pos2] = symbol1
             state_tensor[pos2, pos1] = symbol1
-        return state_tensor
+        return state_tensor * self.player_symbol
 
     def get_value(self, board):
         state_tensor = self.get_state_tensor(board)

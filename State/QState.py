@@ -187,6 +187,10 @@ class QState(BaseState):
     # Training
     def play(self, rounds=100):
 
+        # Assign player their symbol in the game
+        self.p1.player_symbol = 1
+        self.p2.player_symbol = -1
+
         for i in range(rounds):
 
             cyclicEntangled = False
