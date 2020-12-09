@@ -43,7 +43,7 @@ class DeepQPlayer(BasePlayer):
         return state_tensor * self.player_symbol
 
     def get_value(self, board):
-        state_tensor = self.get_state_tensor(board)
+        state_tensor = self.get_state_tensor(board).to(DEVICE)
         value = self.model(state_tensor)
         return value.item()
 

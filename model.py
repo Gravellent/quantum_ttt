@@ -5,10 +5,12 @@ from torch import nn
 """
 Please use this mask to filter out the duplicate cells first
 """
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
 mask = torch.zeros(9, 9).type(torch.BoolTensor)
 for i in range(9):
     mask[i][i:] = True
 FEATURE_SIZE = 45
+mask = mask.to(DEVICE)
 
 
 class LinearModel(torch.nn.Module):
