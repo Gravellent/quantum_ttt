@@ -1,12 +1,14 @@
 from Player.BasePlayer import *
 
+DEVICE = 'cuda' if torch.cuda.is_available() else 'cpu'
+
 
 class DeepQPlayer(BasePlayer):
 
     def __init__(self, name, model_cls=LinearModel):
         super().__init__(name)
-        self.model = model_cls()
-        self.criterion = nn.MSELoss()
+        self.model = model_cls().to(DEVICE)
+        self.criterion = nn.MSELoss().to(DEVICE)
         self.optimizer = optim.SGD(self.model.parameters(), lr=0.01)
 
     def forget(self):
@@ -81,17 +83,15 @@ class DeepQPlayer(BasePlayer):
             return
         # if self.update_method == 'sarsa':
         for st in reversed(self.states):
-            state_tensor = self.get_state_tensor(st)
+            state_tensor = self.get_state_tensor(st).to(DEVICE)
             y_pred = self.model(state_tensor)
-            y_true = torch.FloatTensor([reward])
+            y_true = torch.FloatTensor([reward]).to(DEVICE)
             loss = self.criterion(y_pred, y_true)
             loss.backward()
             self.optimizer.step()
             reward = self.decay_gamma * reward
 
     def collapse(self, play, pos, board, trace):
-        # print('starting play', play)
-        # print('starting pos', pos)
         board[pos] = play[1]
         for neighbor in [p for p in trace[pos] if p != play]:
             board = self.collapseNextEntangled(neighbor, play, pos, board, trace)
@@ -140,20 +140,9 @@ class DeepQPlayer(BasePlayer):
             for pos in (pos1, pos2):
                 next_board = copy.deepcopy(current_board)
                 next_trace = copy.deepcopy(current_trace)
-                # print('board before collapse:',next_board)
                 next_board = self.collapse(play, pos, next_board, next_trace)
-                # print('next board:', next_board)
                 value = self.get_value(next_board)
                 if value >= value_max:
                     value_max = value
                     action = pos
-        #                 next_board[pos] = play[1]
-        #                 for neighbor in [p for p in next_trace[pos] if p != play]:
-        #                     print("current board", next_board)
-        #                     next_board = self.collapse(play, pos, next_board, avail_pos, next_trace)
-        #                     print("next board:", next_board)
-        #                     value = self.get_value(next_board)
-        #                     if value >= value_max:
-        #                         value_max = value
-        #                         action = pos
         return action
