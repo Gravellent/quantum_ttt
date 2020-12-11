@@ -79,4 +79,5 @@ class Model3(torch.nn.Module):
         out = out.squeeze(3)
         out = out.squeeze(2)
         out = self.linear(out)
+        out = out.squeeze(1)
         return out
