@@ -17,9 +17,9 @@ class LRUCache:
     # don't find the key in out dict / cache.
     # And also move the key to the end
     # to show that it was recently used.
-    def get(self, key: int) -> int:
+    def get(self, key):
         if key not in self.cache:
-            return -1
+            return None
         else:
             self.cache.move_to_end(key)
             return self.cache[key]
@@ -29,7 +29,7 @@ class LRUCache:
     # But here we will also check whether the length of our
     # ordered dictionary has exceeded our capacity,
     # If so we remove the first key (least recently used)
-    def put(self, key, value) -> None:
+    def put(self, key, value):
         self.cache[key] = value
         self.cache.move_to_end(key)
         if len(self.cache) > self.capacity:

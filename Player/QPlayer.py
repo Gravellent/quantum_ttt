@@ -1,13 +1,17 @@
 from Player.BasePlayer import *
 from utils import *
+import random
 
 class QPlayer(BasePlayer):
 
-    def __init__(self, name, memory_type="dict", lru_capacity=10000):
+    def __init__(self, name, memory_type="dict", capacity=10000):
         super().__init__(name)
         self.memory_type = memory_type
+        self.capacity = capacity
         if memory_type == 'lru':
-            self.states_value = LRUCache(lru_capacity)
+            self.states_value = LRUCache(self.capacity)
+        if memory_type == 'random_dict':
+            self.states_value = {}
 
     def getHash(self, board):
         return str(board)
@@ -15,6 +19,12 @@ class QPlayer(BasePlayer):
     def addState(self, state):
         state = str(state)
         self.states.append(state)
+
+    def forget(self):
+        if self.memory_type == 'lru':
+            self.states_value = LRUCache(self.lru_capacity)
+        if self.memory_type == 'random_dict':
+            self.states_value = {}
 
     def chooseAction(self, positions, current_board, current_trace, symbol, step):
 
@@ -74,6 +84,14 @@ class QPlayer(BasePlayer):
                     new_value = self.states_value.get(st) + self.lr * (self.decay_gamma * reward - self.states_value.get(st))
                     self.states_value.put(st, new_value)
                     reward = self.states_value.get(st)
+
+                elif self.memory_type == 'random_dict':
+                    if self.states_value.get(st) is None:
+                        if len(self.states_value) >= self.capacity:
+                            self.states_value.pop(random.choice(list(self.states_value.keys())))
+                        self.states_value[st] = 0
+                    self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
+                    reward = self.states_value[st]
 
                 else:
                     if self.states_value.get(st) is None:
