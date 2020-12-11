@@ -1,6 +1,13 @@
 from Player.BasePlayer import *
+from utils import *
 
 class QPlayer(BasePlayer):
+
+    def __init__(self, name, memory_type="dict", lru_capacity=10000):
+        super().__init__(name)
+        self.memory_type = memory_type
+        if memory_type == 'lru':
+            self.states_value = LRUCache(lru_capacity)
 
     def getHash(self, board):
         return str(board)
@@ -59,7 +66,17 @@ class QPlayer(BasePlayer):
             return
         if self.update_method == 'sarsa':
             for st in reversed(self.states):
-                if self.states_value.get(st) is None:
-                    self.states_value[st] = 0
-                self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
-                reward = self.states_value[st]
+
+                # Change for LRU structure
+                if self.memory_type == 'lru':
+                    if self.states_value.get(st) is None:
+                        self.states_value.put(st, 0)
+                    new_value = self.states_value.get(st) + self.lr * (self.decay_gamma * reward - self.states_value.get(st))
+                    self.states_value.put(st, new_value)
+                    reward = self.states_value.get(st)
+
+                else:
+                    if self.states_value.get(st) is None:
+                        self.states_value[st] = 0
+                    self.states_value[st] += self.lr * (self.decay_gamma * reward - self.states_value[st])
+                    reward = self.states_value[st]
