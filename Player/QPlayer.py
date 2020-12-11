@@ -6,6 +6,7 @@ class QPlayer(BasePlayer):
         return str(board)
 
     def addState(self, state):
+        state = str(state)
         self.states.append(state)
 
     def chooseAction(self, positions, current_board, current_trace, symbol, step):
