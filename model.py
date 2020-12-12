@@ -81,3 +81,64 @@ class Model3(torch.nn.Module):
         out = self.linear(out)
         out = out.squeeze(1)
         return out
+
+
+class FiveLayerNN(torch.nn.Module):
+
+    def __init__(self):
+        super(FiveLayerNN, self).__init__()
+        self.linear1 = torch.nn.Linear(FEATURE_SIZE, 128)
+        self.linear2 = torch.nn.Linear(128, 64)
+        self.linear3 = torch.nn.Linear(64, 32)
+        self.linear4 = torch.nn.Linear(32, 16)
+        self.linear5 = torch.nn.Linear(16, 1)
+        self.sig = nn.Sigmoid()
+
+    def forward(self, x):
+        out = x[mask]
+        out = self.linear1(out)
+        out = self.sig(out)
+        out = self.linear2(out)
+        out = self.sig(out)
+        out = self.linear3(out)
+        out = self.sig(out)
+        out = self.linear4(out)
+        out = self.sig(out)
+        out = self.linear5(out)
+        return out
+
+
+class ThreeLayerNN(torch.nn.Module):
+
+    def __init__(self):
+        super(ThreeLayerNN, self).__init__()
+        self.linear1 = torch.nn.Linear(FEATURE_SIZE, 128)
+        self.linear2 = torch.nn.Linear(128, 16)
+        self.linear3 = torch.nn.Linear(16, 1)
+        self.sig = nn.Sigmoid()
+
+    def forward(self, x):
+        out = x[mask]
+        out = self.linear1(out)
+        out = self.sig(out)
+        out = self.linear2(out)
+        out = self.sig(out)
+        out = self.linear3(out)
+        return out
+
+
+class TwoLayerNN(torch.nn.Module):
+
+    def __init__(self):
+        super(TwoLayerNN, self).__init__()
+        self.linear1 = torch.nn.Linear(FEATURE_SIZE, 32)
+        self.linear2 = torch.nn.Linear(32, 1)
+        self.sig = nn.Sigmoid()
+
+    def forward(self, x):
+        out = x[mask]
+        out = self.linear1(out)
+        out = self.sig(out)
+        out = self.linear2(out)
+        return out
+
