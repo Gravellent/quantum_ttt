@@ -1,5 +1,5 @@
 from State.BaseState import *
-
+import copy
 
 class QState(BaseState):
 
@@ -12,7 +12,7 @@ class QState(BaseState):
         self.p2 = p2
         self.isEnd = False
         self.boardHash = None
-        # init p1 plays first
+        # init p1 plays firstr
         self.playerSymbol = 1
         self.step = 0
 
@@ -26,7 +26,6 @@ class QState(BaseState):
                     flag = False
                     break
                 score += self.board[idx]
-            # print('score', score)
             if flag == True:
                 if score == 3:
                     self.isEnd = True
@@ -93,8 +92,9 @@ class QState(BaseState):
         return None
 
     def getHash(self):
-        self.boardHash = str(self.board)
-        return self.boardHash
+        return copy.deepcopy(self.board)
+        # self.boardHash = str(self.board)
+        # return self.boardHash
 
     # Update available positions based on current state of the board.
     # This will be called after each collapse happens.
@@ -327,6 +327,8 @@ class QState(BaseState):
             # check winner
             win = self.winner()
             if win is not None:
+                print('Winner is:', win)
+                self.showBoard()
                 if win == 1:
                     print(self.p1.name, "wins!")
                 elif win == -1:

@@ -44,3 +44,40 @@ class Model2(torch.nn.Module):
         out = self.relu(out)
         out = self.linear4(out)
         return out
+
+class Model3(torch.nn.Module):
+
+    def __init__(self):
+        super(Model3, self).__init__()
+        self.layer1 = nn.Sequential(
+            nn.Conv2d(1, 64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+        )
+        self.layer2 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(3,3),
+            )
+        
+        self.layer3 = nn.Sequential(
+            nn.Conv2d(64, 64, kernel_size=3, stride=1, padding=1),
+            nn.BatchNorm2d(64),
+            nn.ReLU(inplace=True),
+            nn.MaxPool2d(3,3),
+            )
+        
+        self.linear = torch.nn.Linear(64, 1)
+
+    def forward(self, x):
+        out = x.unsqueeze(0)
+        out = out.unsqueeze(0)
+        out = self.layer1(out)
+        out = self.layer2(out)
+        out = self.layer3(out)
+        out = out.squeeze(3)
+        out = out.squeeze(2)
+        out = self.linear(out)
+        out = out.squeeze(1)
+        return out
