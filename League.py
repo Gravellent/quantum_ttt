@@ -304,7 +304,7 @@ if __name__ == "__main__":
         if effective_win_rate:
             e_w_r_plot = plt.plot(games, e_w_r, label="Effective Win rate")
             plt.ylim(-0.1,1.1)
-            plt.title("{} Stats".format(player))
+            plt.title("{} Effective Win Rate".format(player))
             plt.legend()
             plt.show()
 
