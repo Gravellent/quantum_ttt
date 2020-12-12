@@ -199,7 +199,7 @@ if __name__ == "__main__":
     player_list = [DeepQPlayer("Challenger"), DeepQPlayer("Contender"), DeepQPlayer("Underdog")]
     # number of learning and eval games
     learning_games_per_iteration = 10
-    eval_games_per_iteration = 5
+    eval_games_per_iteration = 10
     # how many rounds are playerd
     n_rounds = 3
     # warm up
@@ -208,6 +208,8 @@ if __name__ == "__main__":
     # randomize order of training
     random_train = False
     games_per_step = 2
+    # to get effective win rate - wins and 0.5*ties
+    effective_win_rate = True
     # print stats list before and after plot
     verbose = True
 
@@ -279,8 +281,13 @@ if __name__ == "__main__":
     
     for player in plot_stats.keys():
         games = np.arange(0, (n_rounds)*eval_games_per_iteration, eval_games_per_iteration)
-        
+        e_w_r = []
+
         for i in range(n_rounds):
+            # for effective win rate plot
+            if effective_win_rate:
+                e_w_r.append((plot_stats[player][0][i] + plot_stats[player][2][i]*0.5)/(eval_games_per_iteration*((n_players-1)*2)))
+
             plot_stats[player][0][i] /= eval_games_per_iteration*((n_players-1)*2)
             plot_stats[player][1][i] /= eval_games_per_iteration*((n_players-1)*2)
             plot_stats[player][2][i] /= eval_games_per_iteration*((n_players-1)*2)
@@ -292,9 +299,21 @@ if __name__ == "__main__":
         plt.title("{} Stats".format(player))
         plt.legend()
         plt.show()
-    
+
+        # for effective win rate plot
+        if effective_win_rate:
+            e_w_r_plot = plt.plot(games, e_w_r, label="Effective Win rate")
+            plt.ylim(-0.1,1.1)
+            plt.title("{} Stats".format(player))
+            plt.legend()
+            plt.show()
+
     if verbose:
         print("\n", plot_stats)
+
+    for _round in plot_stats.keys():
+        print("Player: {}".format(_round))
+        print(plot_stats[_round])
 
     '''
     Test the League class
