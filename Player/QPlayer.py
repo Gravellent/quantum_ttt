@@ -12,6 +12,8 @@ class QPlayer(BasePlayer):
             self.states_value = LRUCache(self.capacity)
         if memory_type == 'random_dict':
             self.states_value = {}
+        self.hit_counter = 0  # To track memory hits
+        self.query_counter = 0
 
     def getHash(self, board):
         return str(board)
@@ -25,6 +27,8 @@ class QPlayer(BasePlayer):
             self.states_value = LRUCache(self.lru_capacity)
         if self.memory_type == 'random_dict':
             self.states_value = {}
+        self.hit_counter = 0  # To track memory hits
+        self.query_counter = 0
 
     def chooseAction(self, positions, current_board, current_trace, symbol, step):
 
@@ -50,8 +54,12 @@ class QPlayer(BasePlayer):
                         next_trace[p1].append((step, symbol))
                         next_trace[p2].append((step, symbol))
                         next_boardHash = self.getHash(next_board)
-                        value = 0 if self.states_value.get(next_boardHash) is None else self.states_value.get(
-                            next_boardHash)
+                        self.query_counter += 1
+                        if self.states_value.get(next_boardHash) is None:
+                            value = (random.random() - 0.5) / 10000
+                        else:
+                            value = self.states_value.get(next_boardHash)
+                            self.hit_counter += 1
                         if value >= value_max:
                             value_max = value
                             action1 = p1
