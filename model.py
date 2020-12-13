@@ -23,16 +23,36 @@ class LinearModel(torch.nn.Module):
         out = x[mask]
         return self.linear(out)
 
+class Model2sig(torch.nn.Module):
 
+    def __init__(self):
+        super(Model2sig, self).__init__()
+        self.linear1 = torch.nn.Linear(FEATURE_SIZE, 256)
+        self.linear2 = torch.nn.Linear(256, 128)
+        self.linear3 = torch.nn.Linear(128, 16)
+        self.linear4 = torch.nn.Linear(16, 1)
+        self.sig = nn.Sigmoid()
+
+    def forward(self, x):
+        out = x[mask]
+        out = self.linear1(out)
+        out = self.sig(out)
+        out = self.linear2(out)
+        out = self.sig(out)
+        out = self.linear3(out)
+        out = self.sig(out)
+        out = self.linear4(out)
+        return out
+    
 class Model2(torch.nn.Module):
 
     def __init__(self):
         super(Model2, self).__init__()
         self.linear1 = torch.nn.Linear(FEATURE_SIZE, 256)
-        self.relu = nn.ReLU()
         self.linear2 = torch.nn.Linear(256, 128)
         self.linear3 = torch.nn.Linear(128, 16)
         self.linear4 = torch.nn.Linear(16, 1)
+        self.relu = nn.ReLU()
 
     def forward(self, x):
         out = x[mask]
@@ -92,18 +112,18 @@ class FiveLayerNN(torch.nn.Module):
         self.linear3 = torch.nn.Linear(64, 32)
         self.linear4 = torch.nn.Linear(32, 16)
         self.linear5 = torch.nn.Linear(16, 1)
-        self.sig = nn.Sigmoid()
+        self.relu = nn.ReLU()
 
     def forward(self, x):
         out = x[mask]
         out = self.linear1(out)
-        out = self.sig(out)
+        out = self.relu(out)
         out = self.linear2(out)
-        out = self.sig(out)
+        out = self.relu(out)
         out = self.linear3(out)
-        out = self.sig(out)
+        out = self.relu(out)
         out = self.linear4(out)
-        out = self.sig(out)
+        out = self.relu(out)
         out = self.linear5(out)
         return out
 
@@ -115,14 +135,14 @@ class ThreeLayerNN(torch.nn.Module):
         self.linear1 = torch.nn.Linear(FEATURE_SIZE, 128)
         self.linear2 = torch.nn.Linear(128, 16)
         self.linear3 = torch.nn.Linear(16, 1)
-        self.sig = nn.Sigmoid()
+        self.relu = nn.ReLU()
 
     def forward(self, x):
         out = x[mask]
         out = self.linear1(out)
-        out = self.sig(out)
+        out = self.relu(out)
         out = self.linear2(out)
-        out = self.sig(out)
+        out = self.relu(out)
         out = self.linear3(out)
         return out
 
@@ -133,12 +153,12 @@ class TwoLayerNN(torch.nn.Module):
         super(TwoLayerNN, self).__init__()
         self.linear1 = torch.nn.Linear(FEATURE_SIZE, 32)
         self.linear2 = torch.nn.Linear(32, 1)
-        self.sig = nn.Sigmoid()
+        self.relu = nn.ReLU()
 
     def forward(self, x):
         out = x[mask]
         out = self.linear1(out)
-        out = self.sig(out)
+        out = self.relu(out)
         out = self.linear2(out)
         return out
 
